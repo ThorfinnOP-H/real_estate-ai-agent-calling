@@ -1,0 +1,596 @@
+{
+  "name": "AI_Agent_calling_OP_2",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "azco-appointment",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        96,
+        704
+      ],
+      "id": "7afc2fbc-b9a9-42c4-8532-dc580432e3d5",
+      "name": "Webhook",
+      "webhookId": "c38b30a0-f21e-4630-b0f8-759a294825e3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Extract the relevent  real estate lead details and booking preference from the provided text according to the structured output schema.\nIMPORTANT: Return ONLY a raw, valid JSON object. Do not include any markdown formatting like json, and do not add any conversational text before or after the JSON.\nHere is the incoming data from the call : {{ $json.body.call.transcript }}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        704
+      ],
+      "id": "ccc0cae5-9ed1-43ec-9e2b-f4fbe09cf717",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "36254ebc-200b-4683-b80a-3077348c3bb4",
+              "leftValue": "={{ $json.output.intent }}",
+              "rightValue": "book_appointment",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        704
+      ],
+      "id": "0e194f84-b67c-4b92-88e4-5fc9ae0d4dc3",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.office_location }}",
+                    "rightValue": "Downtown",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "554ff6db-e27d-4739-80b2-399391d40db1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Downtown"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "001c3379-f40b-47b8-a7ef-ee8437d9092a",
+                    "leftValue": "={{ $json.output.office_location }}",
+                    "rightValue": "JVC Dubai",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "JVC Dubai"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "78090bf9-c7dc-40f7-b24a-386ba47b603e",
+                    "leftValue": "={{ $json.output.office_location }}",
+                    "rightValue": "Business Bay",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Business Bay"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        608
+      ],
+      "id": "b72a98c0-2536-47ba-9f55-c7679a68cc75",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "johncenaop9899@gmail.com",
+          "mode": "list",
+          "cachedResultName": "johncenaop9899@gmail.com"
+        },
+        "start": "={{ $json.output.appointment_date }}T{{ $json.output.appointment_time }}:00+04:00",
+        "end": "={{ DateTime.fromISO($json.output.appointment_date + 'T' + $json.output.appointment_time + ':00+04:00').plus({hours: 1}) }}",
+        "useDefaultReminders": "={{ true }}",
+        "additionalFields": {
+          "description": "=Phone: {{ $('Code in JavaScript').item.json.body.call.from_number }} Email: {{ $json.output.email_id }} Budget: {{ $json.output.budget }}",
+          "summary": "={{ $json.output.customer_name }} for {{ $json.output.property_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1344,
+        432
+      ],
+      "id": "3129e52a-14c1-4088-878a-f0abbe585a98",
+      "name": "Create an event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "t97kDgDiwxloQQ3M",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "johncenaop9899@gmail.com",
+          "mode": "list",
+          "cachedResultName": "johncenaop9899@gmail.com"
+        },
+        "start": "={{ $json.output.appointment_date }}T{{ $json.output.appointment_time }}:00+04:00",
+        "end": "={{ DateTime.fromISO($json.output.appointment_date + 'T' + $json.output.appointment_time + ':00+04:00').plus({hours: 1}) }}",
+        "useDefaultReminders": "={{ true }}",
+        "additionalFields": {
+          "description": "=Phone: {{ $('Code in JavaScript').item.json.body.call.from_number }} Email: {{ $json.output.email_id }} Budget: {{ $json.output.budget }}",
+          "summary": "={{ $json.output.customer_name }} for {{ $json.output.property_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1344,
+        624
+      ],
+      "id": "3e03d37f-819b-4db0-bc42-1bf6be4128e0",
+      "name": "Create an event1",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "t97kDgDiwxloQQ3M",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "calendar": {
+          "__rl": true,
+          "value": "johncenaop9899@gmail.com",
+          "mode": "list",
+          "cachedResultName": "johncenaop9899@gmail.com"
+        },
+        "start": "={{ $json.output.appointment_date }}T{{ $json.output.appointment_time }}:00+04:00",
+        "end": "={{ DateTime.fromISO($json.output.appointment_date + 'T' + $json.output.appointment_time + ':00+04:00').plus({hours: 1}) }}",
+        "useDefaultReminders": "={{ true }}",
+        "additionalFields": {
+          "description": "=Phone: {{ $('Code in JavaScript').item.json.body.call.from_number }} Email: {{ $json.output.email_id }} Budget: {{ $json.output.budget }}",
+          "summary": "={{ $json.output.customer_name }} for {{ $json.output.property_type }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1.3,
+      "position": [
+        1344,
+        816
+      ],
+      "id": "9ff2a332-3fbe-4da3-921b-1012f56f792c",
+      "name": "Create an event2",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "t97kDgDiwxloQQ3M",
+          "name": "Google Calendar OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.lead.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"TITLE\": \"🔥 AI Lead - {{ $json.output.customer_name }}\",\n    \"NAME\": \"{{ $json.output.customer_name }}\",\n    \"PHONE\": [ \n      { \"VALUE\": \"{{ $json.output.phone_number }}\", \"VALUE_TYPE\": \"WORK\" } \n    ],\n    \"EMAIL\": [ \n      { \"VALUE\": \"{{ $json.output.email_id }}\", \"VALUE_TYPE\": \"WORK\" } \n    ],\n    \"OPPORTUNITY\": \"{{ $json.output.budget }}\",\n    \"COMMENTS\": \"Property Type: {{ $json.output.property_type }} | Location: {{ $json.output.office_location }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1280,
+        1120
+      ],
+      "id": "dd6327bc-59d0-4f4b-b17f-1a7bc4e07167",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"intent\": {\n      \"type\": \"string\",\n      \"description\": \"Must be either 'book_appointment' or 'callback_only'\"\n    },\n    \"customer_name\": {\n      \"type\": \"string\"\n    },\n    \"email_id\": {\n      \"type\": \"string\"\n    },\n    \"property_type\": {\n      \"type\": \"string\",\n      \"description\": \"Apartment or Villa\"\n    },\n    \"budget\": {\n      \"type\": \"number\",\n      \"description\": \"Strictly convert the budget to a raw number. Do not include currency symbols, commas, or words. Example: for 'three million dirhams' output 3000000\"\n    },\n    \"appointment_date\": {\n      \"type\": \"string\",\n      \"description\": \"Format YYYY-MM-DD\"\n    },\n    \"appointment_time\": {\n      \"type\": \"string\",\n      \"description\": \"Format HH:MM in 24-hour format\"\n    },\n    \"office_location\": {\n      \"type\": \"string\",\n      \"description\": \"Downtown, JVC Dubai, or Business Bay\"\n    }\n  },\n  \"required\": [\"intent\", \"customer_name\", \"phone_number\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        656,
+        912
+      ],
+      "id": "96ba3a00-f96f-404c-8a30-6bd863d19ad5",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-3.5-turbo",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        336,
+        912
+      ],
+      "id": "af59c3f3-9366-42bc-a7ad-d71bb53b2700",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "6eyPcp9TBS8NRfbB",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.lead.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"TITLE\": \"🔥 New Appointment Lead - {{ $json.output.customer_name }}\",\n    \"NAME\": \"{{ $json.output.customer_name }}\",\n    \"PHONE\": [ { \"VALUE\": \"{{ $json.output.phone_number }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"EMAIL\": [ { \"VALUE\": \"{{ $json.output.email_id }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"OPPORTUNITY\": \"{{ $json.output.budget }}\",\n    \"COMMENTS\": \"Property Type: {{ $json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        0
+      ],
+      "id": "c2566b85-8ed6-4b80-bade-b35c92ee9f13",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.activity.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"OWNER_TYPE_ID\": 1,\n    \"OWNER_ID\": \"{{ $json.result }}\",\n    \"TYPE_ID\": 1,\n    \"COMMUNICATIONS\": [\n      {\n        \"ENTITY_ID\": \"{{ $json.result }}\",\n        \"ENTITY_TYPE_ID\": 1\n      }\n    ],\n    \"RESPONSIBLE_ID\": 1, \n    \"SUBJECT\": \"Meeting at {{ $('AI Agent').first().json.output.office_location }} with {{ $('AI Agent').first().json.output.customer_name }}\",\n    \"START_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }}T{{ $('AI Agent').first().json.output.appointment_time }}:00+04:00\",\n    \"END_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }}T{{ $('AI Agent').first().json.output.appointment_time }}:00+04:00\",\n    \"COMPLETED\": \"N\",\n    \"DESCRIPTION\": \"Budget: {{ $('AI Agent').first().json.output.budget }} | Property: {{ $('AI Agent').first().json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        0
+      ],
+      "id": "558fdc1a-9997-48aa-8dd1-6d898aa43378",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.lead.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"TITLE\": \"🔥 New Appointment Lead - {{ $json.output.customer_name }}\",\n    \"NAME\": \"{{ $json.output.customer_name }}\",\n    \"PHONE\": [ { \"VALUE\": \"{{ $json.output.phone_number }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"EMAIL\": [ { \"VALUE\": \"{{ $json.output.email_id }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"OPPORTUNITY\": \"{{ $json.output.budget }}\",\n    \"COMMENTS\": \"Property Type: {{ $json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        160
+      ],
+      "id": "c466447b-b50d-4852-86fd-a31734b24c13",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.activity.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"OWNER_TYPE_ID\": 1,\n    \"OWNER_ID\": \"{{ $json.result }}\",\n    \"TYPE_ID\": 1,\n    \"COMMUNICATIONS\": [\n      {\n        \"ENTITY_ID\": \"{{ $json.result }}\",\n        \"ENTITY_TYPE_ID\": 1\n      }\n    ],\n    \"RESPONSIBLE_ID\": 13, \n    \"SUBJECT\": \"Meeting at {{ $('AI Agent').first().json.output.office_location }} with {{ $('AI Agent').first().json.output.customer_name }}\",\n    \"START_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }} {{ $('AI Agent').first().json.output.appointment_time }}:00\",\n    \"END_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }} {{ $('AI Agent').first().json.output.appointment_time }}:00\",\n    \"COMPLETED\": \"N\",\n    \"DESCRIPTION\": \"Budget: {{ $('AI Agent').first().json.output.budget }} | Property: {{ $('AI Agent').first().json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        160
+      ],
+      "id": "6db1c5ea-5cbc-4412-b63c-ab5fd8196557",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.lead.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"TITLE\": \"🔥 New Appointment Lead - {{ $json.output.customer_name }}\",\n    \"NAME\": \"{{ $json.output.customer_name }}\",\n    \"PHONE\": [ { \"VALUE\": \"{{ $json.output.phone_number }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"EMAIL\": [ { \"VALUE\": \"{{ $json.output.email_id }}\", \"VALUE_TYPE\": \"WORK\" } ],\n    \"OPPORTUNITY\": \"{{ $json.output.budget }}\",\n    \"COMMENTS\": \"Property Type: {{ $json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        304,
+        304
+      ],
+      "id": "4d143610-9eb6-4483-8c66-409c246c9d75",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://b24-icbymk.bitrix24.in/rest/1/moi6atf507ij7lm1/crm.activity.add.json",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"OWNER_TYPE_ID\": 1,\n    \"OWNER_ID\": \"{{ $json.result }}\",\n    \"TYPE_ID\": 1,\n    \"COMMUNICATIONS\": [\n      {\n        \"ENTITY_ID\": \"{{ $json.result }}\",\n        \"ENTITY_TYPE_ID\": 1\n      }\n    ],\n    \"RESPONSIBLE_ID\": 15, \n    \"SUBJECT\": \"Meeting at {{ $('AI Agent').first().json.output.office_location }} with {{ $('AI Agent').first().json.output.customer_name }}\",\n    \"START_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }} {{ $('AI Agent').first().json.output.appointment_time }}:00\",\n    \"END_TIME\": \"{{ $('AI Agent').first().json.output.appointment_date }} {{ $('AI Agent').first().json.output.appointment_time }}:00\",\n    \"COMPLETED\": \"N\",\n    \"DESCRIPTION\": \"Budget: {{ $('AI Agent').first().json.output.budget }} | Property: {{ $('AI Agent').first().json.output.property_type }}\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        432,
+        304
+      ],
+      "id": "9465d9d5-e8d1-40e2-8549-40e27e78e62f",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.body.call.transcript }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        512,
+        912
+      ],
+      "id": "df33f836-b658-472a-beeb-adb52d0939dc",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsCode": "let phoneNumber = $input.first().json.body.call.from_number || \"\"; \nlet countryName = \"Unknown\";\n\n// Country check logic\nif (phoneNumber.startsWith(\"+91\")) {\n    countryName = \"India\";\n} else if (phoneNumber.startsWith(\"+971\")) {\n    countryName = \"UAE - Dubai\";\n} else if (phoneNumber.startsWith(\"+1\")) {\n    countryName = \"USA/Canada\";\n} else if (phoneNumber.startsWith(\"+44\")) {\n    countryName = \"UK\";\n}\n\nreturn {\n    json: {\n        ...$input.item.json,\n        extracted_country: countryName\n    }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        704
+      ],
+      "id": "dc3c1111-022c-4cfa-bacd-a4db6bad059c",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create an event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an event1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create an event2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "42f5dce9-cfb1-4f74-89f2-123fcf010cba",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ee2826c72021f6f3fae43f3485ec70ca70981af101684ef6e8ff8a210068fc77"
+  },
+  "id": "jzsNUQmo9HvznPaW",
+  "tags": []
+}
